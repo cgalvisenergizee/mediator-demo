@@ -11,10 +11,12 @@ mkdir src && cd src
 dotnet new sln -n MediatorDemo
 # Make console project
 dotnet new console -n Program
-# Add MediatR dependencies
+# Add dependencies
 dotnet add Program/Program.csproj package MediatR --version 10.0.1
 dotnet add Program/Program.csproj package MediatR.Extensions.Microsoft.DependencyInjection --version 10.0.1
 dotnet add Program/Program.csproj package Microsoft.Extensions.DependencyInjection --version 6.0.0
+dotnet add Program/Program.csproj package Microsoft.Extensions.Logging --version 6.0.0
+dotnet add Program/Program.csproj package Microsoft.Extensions.Logging.Console --version 6.0.0
 # Add projects to solution
 dotnet sln add Program/Program.csproj
 # Restore NuGet packages
