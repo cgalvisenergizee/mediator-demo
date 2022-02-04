@@ -5,8 +5,8 @@ namespace Program.Models
     public class Airport
     {
         public string Name { get; set; }
-        public List<LandingTrack> LandingTracks { get; set; }
-        public List<ControlTower> ControlTowers { get; set; }
+        public List<LandingTrack> LandingTracks { get; set; } = new();
+        public List<ControlTower> ControlTowers { get; set; } = new();
     }
 
     public class LandingTrack

@@ -23,7 +23,7 @@ namespace Program
 
             // Execute program
             var service = serviceProvider.GetService<IAirportService>();
-            service.SmulateLandings();
+            service.SimulateLandings();
 
             logger.LogDebug("All done!");
         }
