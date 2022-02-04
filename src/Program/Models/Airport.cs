@@ -12,5 +12,6 @@ namespace Program.Models
     public class LandingTrack
     {
         public string Name { get; set; }
+        public bool Busy { get; set; } = false;
     }
 }

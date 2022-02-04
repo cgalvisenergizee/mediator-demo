@@ -1,8 +1,15 @@
 ﻿namespace Program.Models
 {
-    public abstract class Vehicle
+    public class Vehicle
     {
         public string Id { get; set; }
         public int Passengers { get; set; }
+        public VehicleType Type { get; set; }
+    }
+
+    public enum VehicleType
+    {
+        Plane,
+        Helicopter
     }
 }

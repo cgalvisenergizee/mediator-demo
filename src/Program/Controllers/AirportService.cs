@@ -1,8 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
+using Program.Controllers.Vehicles.Commands;
+using Program.Data;
 using Program.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Program.Controllers
 {
@@ -14,32 +19,88 @@ namespace Program.Controllers
     public class AirportService : IAirportService
     {
         private readonly ILogger<AirportService> _logger;
+        private readonly IMediator _mediator;
+        private readonly IRepository<Airport> _airportRepository;
+        private readonly IRepository<Vehicle> _vehicleRepository;
 
-        public AirportService(ILoggerFactory loggerFactory)
+        public AirportService(ILoggerFactory loggerFactory, IMediator mediator,
+            IRepository<Airport> airportRepository, IRepository<Vehicle> vehicleRepository)
         {
             _logger = loggerFactory.CreateLogger<AirportService>();
-        }
-
-        public void SimulateLandings()
-        {
-            _logger.LogInformation($"Simulate landings ...");
-
-            // Generate fake airport
-            Airport airport = GenerateAirport();
-
-            // Print airport data
-            PrintAirportData(airport);
-
-            // Generate fake random vehicles
-            List<Vehicle> vehicles = GenerateVehicles();
-
-            // Print vehicles data
-            PrintVehiclesData(vehicles);
+            _mediator = mediator;
+            _airportRepository = airportRepository;
+            _vehicleRepository = vehicleRepository;
         }
 
         #region General functions
 
-        private static Airport GenerateAirport()
+        public void SimulateLandings()
+        {
+            _logger.LogInformation($"Generate data ...");
+
+            // Generate database
+            InitializeDb();
+
+            // Print airport data
+            var airport = _airportRepository
+                .GetAll()
+                .FirstOrDefault();
+            PrintAirportData(airport);
+
+            var vehicles = _vehicleRepository.GetAll();
+
+            // Print vehicles data
+            PrintVehiclesData(vehicles);
+
+            _logger.LogInformation($"Simulate landings ...");
+
+            SimulateLandings(vehicles);
+        }
+
+        public void SimulateLandings(List<Vehicle> vehicles)
+        {
+            foreach (var vehicle in vehicles)
+            {
+                SimulateLanding(vehicle);
+            }
+        }
+
+        public void SimulateLanding(Vehicle vehicle)
+        {
+            var enabledTrack = GetEnabledLandingTrack();
+
+            if (enabledTrack != null)
+            {
+                _logger.LogInformation($"Vehicle {vehicle.Id} has landed");
+                return;
+            }
+            else
+            {
+                _logger.LogInformation($"There are no landing tracks for vehicle {vehicle.Id}");
+                Thread.Sleep(5000);
+                SimulateLanding(vehicle);
+            }
+        }
+
+        public async Task<LandingTrack> GetEnabledLandingTrack()
+        {
+            return await _mediator.Send(new CheckLandingDataCommand());
+        }
+
+        #endregion
+
+        #region Initialize database
+
+        private void InitializeDb()
+        {
+            // Generate fake airport
+            GenerateAirport();
+
+            // Generate fake random vehicles
+            GenerateVehicles();
+        }
+
+        private Airport GenerateAirport()
         {
             Airport airport = new()
             {
@@ -63,10 +124,13 @@ namespace Program.Controllers
                 });
             }
 
+            // Save data
+            _airportRepository.Add(airport);
+
             return airport;
         }
 
-        private static List<Vehicle> GenerateVehicles()
+        private List<Vehicle> GenerateVehicles()
         {
             var rand = new Random();
             int totalHelicopters = rand.Next(1, 3);
@@ -74,19 +138,26 @@ namespace Program.Controllers
 
             List<Vehicle> vehicles = new();
 
+            // Add helicopters
             for (int i = 0; i < totalHelicopters; i++)
-                vehicles.Add(new Helicopter()
+                vehicles.Add(new()
                 {
                     Id = $"H{i + 1}",
-                    Passengers = rand.Next(2, 6)
+                    Passengers = rand.Next(2, 6),
+                    Type = VehicleType.Helicopter
                 });
 
+            // Add planes
             for (int i = 0; i < totalPlanes; i++)
-                vehicles.Add(new Plane()
+                vehicles.Add(new()
                 {
                     Id = $"P{i + 1}",
-                    Passengers = rand.Next(18, 80)
+                    Passengers = rand.Next(18, 80),
+                    Type = VehicleType.Plane
                 });
+
+            // Save data
+            _vehicleRepository.AddRange(vehicles);
 
             return vehicles;
         }
@@ -125,7 +196,7 @@ namespace Program.Controllers
                 printData = new()
                 {
                     { "Vehicle", vehicle.Id },
-                    { "- type", vehicle.GetType().Name },
+                    { "- type", $"{vehicle.Type}" },
                     { "- passengers", $"{vehicle.Passengers}" },
                 };
 

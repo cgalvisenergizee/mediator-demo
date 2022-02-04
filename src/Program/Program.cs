@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Program.Controllers;
+using Program.Data;
 using System.Reflection;
 
 namespace Program
@@ -15,6 +16,7 @@ namespace Program
                 .AddLogging(opt => opt.AddConsole())
                 .AddMediatR(Assembly.GetExecutingAssembly())
                 .AddSingleton<IAirportService, AirportService>()
+                .AddSingleton(typeof(IRepository<>), typeof(Repository<>))
                 .BuildServiceProvider();
 
             var logger = serviceProvider.GetService<ILoggerFactory>()
