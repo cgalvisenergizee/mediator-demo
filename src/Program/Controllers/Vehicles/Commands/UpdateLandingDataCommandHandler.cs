@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Program.Data;
 using Program.Models;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Program.Controllers.Vehicles.Commands
 
         public async Task<bool> Handle(UpdateLandingDataCommand request, CancellationToken cancellationToken)
         {
+            var rand = new Random();
             var airport = _airportRepository
                 .GetAll()
                 .FirstOrDefault();
@@ -30,7 +32,7 @@ namespace Program.Controllers.Vehicles.Commands
                 .Where(t => t.Name == request.LandingTrack.Name)
                 .FirstOrDefault();
 
-            await Task.Delay(2000);
+            await Task.Delay(rand.Next(2000, 5000));
 
             if (selectedTrack != null)
                 selectedTrack.Busy = false;

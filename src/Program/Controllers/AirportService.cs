@@ -12,7 +12,7 @@ namespace Program.Controllers
 {
     public interface IAirportService
     {
-        Task SimulateLandings();
+        void SimulateLandings();
     }
 
     public class AirportService : IAirportService
@@ -33,7 +33,10 @@ namespace Program.Controllers
 
         #region General functions
 
-        public async Task SimulateLandings()
+        /// <summary>
+        /// Simulate air vehicle landings
+        /// </summary>
+        public void SimulateLandings()
         {
             _logger.LogInformation($"Generate data ...");
 
@@ -55,6 +58,9 @@ namespace Program.Controllers
             SimulateLandings(vehicles).Wait();
         }
 
+        /// <summary>
+        /// Simulate air vehicle landings (asynchronous simulator)
+        /// </summary>
         public async Task SimulateLandings(List<Vehicle> vehicles)
         {
             _logger.LogInformation($"Simulate landings ...");
@@ -67,6 +73,11 @@ namespace Program.Controllers
             _logger.LogInformation($"Process finished");
         }
 
+        /// <summary>
+        /// Simulate air vehicle landing
+        /// </summary>
+        /// <param name="vehicle">Air vehicle data</param>
+        /// <returns>True when the process has finished</returns>
         private async Task<bool> SimulateLandingAsync(Vehicle vehicle)
         {
             var enabledTrack = await GetEnabledLandingTrack();
@@ -85,11 +96,19 @@ namespace Program.Controllers
             }
         }
 
+        /// <summary>
+        /// Get enabled landing track (with MediatR)
+        /// </summary>
+        /// <returns>Enabled landing track</returns>
         public async Task<LandingTrack> GetEnabledLandingTrack()
         {
             return await _mediator.Send(new CheckLandingDataCommand());
         }
 
+        /// <summary>
+        /// Update landing track status (with MediatR)
+        /// </summary>
+        /// <returns>True when the process has finished</returns>
         public async Task<bool> UpdateLandingTrack(LandingTrack track)
         {
             return await _mediator.Send(new UpdateLandingDataCommand()
@@ -102,6 +121,9 @@ namespace Program.Controllers
 
         #region Initialize database
 
+        /// <summary>
+        /// Initialize airport data
+        /// </summary>
         private void InitializeDb()
         {
             // Generate fake airport
@@ -111,6 +133,10 @@ namespace Program.Controllers
             GenerateVehicles();
         }
 
+        /// <summary>
+        /// Generate airport data
+        /// </summary>
+        /// <returns>Fake airport data</returns>
         private Airport GenerateAirport()
         {
             Airport airport = new()
@@ -141,6 +167,10 @@ namespace Program.Controllers
             return airport;
         }
 
+        /// <summary>
+        /// Generate air vehicles data
+        /// </summary>
+        /// <returns>Fake air vehicles list</returns>
         private List<Vehicle> GenerateVehicles()
         {
             var rand = new Random();
@@ -177,6 +207,10 @@ namespace Program.Controllers
 
         #region Print functions
 
+        /// <summary>
+        /// Print airport data with format
+        /// </summary>
+        /// <param name="airport">Airport data</param>
         private static void PrintAirportData(Airport airport)
         {
             Dictionary<string, string> printData = new()
@@ -201,6 +235,10 @@ namespace Program.Controllers
             Console.WriteLine();
         }
 
+        /// <summary>
+        /// Print air vehicles data with format
+        /// </summary>
+        /// <param name="vehicles">Air vehicles list</param>
         private static void PrintVehiclesData(List<Vehicle> vehicles)
         {
             Dictionary<string, string> printData;
