@@ -5,8 +5,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Program.Controllers.Vehicles.Commands
+namespace Program.Controllers.ControlTower.Commands
 {
+    /// <summary>
+    /// MediatR Handler for get a landing track available
+    /// </summary>
     public class CheckLandingDataCommandHandler : IRequestHandler<CheckLandingDataCommand, LandingTrack>
     {
         private readonly IRepository<Airport> _airportRepository;

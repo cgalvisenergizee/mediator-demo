@@ -21,13 +21,13 @@ namespace Program
 
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
-            logger.LogDebug("Starting application");
+            logger.LogInformation("Starting application");
 
             // Execute program
             var service = serviceProvider.GetService<IAirportService>();
             service.SimulateLandings();
 
-            logger.LogDebug("All done!");
+            logger.LogInformation("All done!");
         }
     }
 }

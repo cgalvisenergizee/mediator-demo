@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Program.Models;
 
-namespace Program.Controllers.Vehicles.Commands
+namespace Program.Controllers.ControlTower.Commands
 {
     public class CheckLandingDataCommand : IRequest<LandingTrack>
     { }

@@ -6,7 +6,6 @@ namespace Program.Models
     {
         public string Name { get; set; }
         public List<LandingTrack> LandingTracks { get; set; } = new();
-        public List<ControlTower> ControlTowers { get; set; } = new();
     }
 
     public class LandingTrack

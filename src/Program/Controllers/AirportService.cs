@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using Program.Controllers.Vehicles.Commands;
+using Program.Controllers.ControlTower.Commands;
 using Program.Data;
 using Program.Models;
 using System;
@@ -17,8 +17,9 @@ namespace Program.Controllers
 
     public class AirportService : IAirportService
     {
+        private static readonly ConsoleColor DefaultColor = ConsoleColor.Gray;
         private readonly ILogger<AirportService> _logger;
-        private readonly IMediator _mediator;
+        private readonly IMediator _controlTower;
         private readonly IRepository<Airport> _airportRepository;
         private readonly IRepository<Vehicle> _vehicleRepository;
 
@@ -26,7 +27,7 @@ namespace Program.Controllers
             IRepository<Airport> airportRepository, IRepository<Vehicle> vehicleRepository)
         {
             _logger = loggerFactory.CreateLogger<AirportService>();
-            _mediator = mediator;
+            _controlTower = mediator;
             _airportRepository = airportRepository;
             _vehicleRepository = vehicleRepository;
         }
@@ -63,14 +64,14 @@ namespace Program.Controllers
         /// </summary>
         public async Task SimulateLandings(List<Vehicle> vehicles)
         {
-            _logger.LogInformation($"Simulate landings ...");
+            Console.WriteLine("Simulate landings ...\n");
 
             List<Task<bool>> tasks = new();
             foreach (var vehicle in vehicles)
                 tasks.Add(SimulateLandingAsync(vehicle));
 
             await Task.WhenAll(tasks);
-            _logger.LogInformation($"Process finished");
+            Console.WriteLine();
         }
 
         /// <summary>
@@ -80,18 +81,22 @@ namespace Program.Controllers
         /// <returns>True when the process has finished</returns>
         private async Task<bool> SimulateLandingAsync(Vehicle vehicle)
         {
+            // Wait time with the control tower
+            var rand = new Random();
+            await Task.Delay(rand.Next(2000, 4000));
+
             var enabledTrack = await GetEnabledLandingTrack();
 
             if (enabledTrack != null)
             {
-                _logger.LogInformation($"Vehicle {vehicle.Id} has landed in track {enabledTrack.Name}");
+                Console.WriteLine($"Vehicle [{vehicle.Id}] has landed in track [{enabledTrack.Name}]");
                 await UpdateLandingTrack(enabledTrack);
+                Console.WriteLine($"Vehicle [{vehicle.Id}] has released the track [{enabledTrack.Name}]");
                 return true;
             }
             else
             {
-                _logger.LogInformation($"No track available for vehicle {vehicle.Id}");
-                await Task.Delay(3000);
+                Console.WriteLine($"Vehicle [{vehicle.Id}] does not have an available track");
                 return await SimulateLandingAsync(vehicle);
             }
         }
@@ -102,7 +107,7 @@ namespace Program.Controllers
         /// <returns>Enabled landing track</returns>
         public async Task<LandingTrack> GetEnabledLandingTrack()
         {
-            return await _mediator.Send(new CheckLandingDataCommand());
+            return await _controlTower.Send(new CheckLandingDataCommand());
         }
 
         /// <summary>
@@ -111,7 +116,7 @@ namespace Program.Controllers
         /// <returns>True when the process has finished</returns>
         public async Task<bool> UpdateLandingTrack(LandingTrack track)
         {
-            return await _mediator.Send(new UpdateLandingDataCommand()
+            return await _controlTower.Send(new UpdateLandingDataCommand()
             {
                 LandingTrack = track,
             });
@@ -141,14 +146,7 @@ namespace Program.Controllers
         {
             Airport airport = new()
             {
-                Name = "Miami International airport",
-                ControlTowers = new()
-                {
-                    new()
-                    {
-                        Name = "Control Tower 1"
-                    }
-                }
+                Name = "Miami International airport"
             };
 
             // Add airport landing tracks
@@ -216,22 +214,14 @@ namespace Program.Controllers
             Dictionary<string, string> printData = new()
             {
                 { "Airport", airport.Name },
-                { "- Control towers", $"{airport.ControlTowers.Count}" },
                 { "- Landing tracks", $"{airport.LandingTracks.Count}" },
             };
 
             Console.WriteLine();
+            
             foreach (var data in printData)
-            {
-                if (data.Key.StartsWith("-"))
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                else
-                    Console.ForegroundColor = ConsoleColor.Green;
+                PrintKeyValueData(data.Key, data.Value);
 
-                Console.Write($"{data.Key}: ");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(data.Value);
-            }
             Console.WriteLine();
         }
 
@@ -243,7 +233,6 @@ namespace Program.Controllers
         {
             Dictionary<string, string> printData;
 
-            Console.WriteLine();
             foreach (var vehicle in vehicles)
             {
                 printData = new()
@@ -254,18 +243,26 @@ namespace Program.Controllers
                 };
 
                 foreach (var data in printData)
-                {
-                    if (data.Key.StartsWith("-"))
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                    else
-                        Console.ForegroundColor = ConsoleColor.Green;
-
-                    Console.Write($"{data.Key}: ");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine(data.Value);
-                }
+                    PrintKeyValueData(data.Key, data.Value);
             }
             Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Print key - value data
+        /// </summary>
+        /// <param name="key">Key data</param>
+        /// <param name="value">Value data</param>
+        private static void PrintKeyValueData(string key, string value)
+        {
+            if (key.StartsWith("-"))
+                Console.ForegroundColor = ConsoleColor.Yellow;
+            else
+                Console.ForegroundColor = ConsoleColor.Green;
+
+            Console.Write($"{key}: ");
+            Console.ForegroundColor = DefaultColor;
+            Console.WriteLine(value);
         }
 
         #endregion
