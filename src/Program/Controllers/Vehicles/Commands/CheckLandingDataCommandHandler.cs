@@ -16,7 +16,6 @@ namespace Program.Controllers.Vehicles.Commands
             _airportRepository = airportRepository;
         }
 
-
         public Task<LandingTrack> Handle(CheckLandingDataCommand request, CancellationToken cancellationToken)
         {
             var airport = _airportRepository
@@ -26,7 +25,12 @@ namespace Program.Controllers.Vehicles.Commands
             var enabledTracks = airport.LandingTracks
                 .Where(t => !t.Busy);
 
-            return Task.FromResult(enabledTracks.FirstOrDefault());
+            var enabledTrack = enabledTracks.FirstOrDefault();
+
+            if (enabledTrack != null)
+                enabledTrack.Busy = true;
+
+            return Task.FromResult(enabledTrack);
         }
     }
 }
